@@ -36,22 +36,26 @@ exports.reversArr = (array) => {
   return result;
 }
 
-exports.filterRiddle = (filter , riddles) => {
+exports.filterRiddle = async (filter , riddles) => {
   try {
+    
   let result = [];
   if (filter === 'likes') {
     const likeArr = riddles.map(riddle => {
-      return riddle.like
+      return riddle.likes
     })
     const sortedLike = this.mergeSort(likeArr);
     const reversedLike = this.reversArr(sortedLike);
-    reversedLike.forEach(like => {
-      riddles.forEach(riddle => {
-        if (like === riddle.like) {
-          result.push(riddle);
+    
+    while (riddles.length > 1) {
+      for (let i = 0; i < reversedLike.length; i++) {
+        for (let j = 0; j < riddles.length; j++) {
+          if (reversedLike[i] === riddles[j].likes) {
+            result.push(...riddles.splice(j, 1));
+          }
         }
-      })
-    })
+      }
+    }
   } else if (filter === 'oldest') {
     result = riddles;
   } else {

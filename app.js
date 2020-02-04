@@ -1,8 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config();
-const database = require('./util/database');
 const router = require('./routes/route');
+const mysqlDB = require('./util/mysqlDB');
 
 const app = express();
 
@@ -12,9 +12,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 app.use(router);
 
-
 app.use(express.static('./public'));
 
-database.mongoConnect(() => {
+mysqlDB.connectToMySQL(()=>{
     app.listen(3000);
-});
+})

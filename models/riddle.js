@@ -1,42 +1,60 @@
-const database = require('../util/database');
-const mongodb = require('mongodb');
+const mysqlDB =require('../util/mysqlDB');
 
 class Riddle {
   constructor(author, title, riddle, image_url, date) {
     this.title = title;
     this.author = author;
     this.riddle = riddle;
-    this.like = 0;
+    this.likes = 0;
     this.image_url = image_url;
-    this.date = new Date();
   }
 
   saveRiddle() {
-    database.getDB().collection('riddles').insertOne(this);
+    let sql = `INSERT INTO riddles SET ?`;
+    mysqlDB.getDB().query(sql, this, (err, results)=> {
+      if(err) throw err;
+    });
   }
 
   static getAll() {
-    return database.getDB().collection('riddles').find().toArray()
+    let sql = 'SELECT * FROM riddles'
+    return new Promise((resolve, reject) => {
+      mysqlDB.getDB().query(sql, (err, results, fields) => {
+        
+        resolve(results);
+      })
+    })
   }
 
   static getOne(riddleId) {
-    return database.getDB().collection('riddles').findOne({ _id: new mongodb.ObjectId(riddleId) })
+    let sql = `SELECT * FROM riddles WHERE _id = ${riddleId}`;
+    return new Promise((resolve, reject) => {
+      mysqlDB.getDB().query(sql, (err, results) => {
+        resolve(results[0]);
+      })
+    })
   }
 
   static deleteRiddle(id) {
-    return database.getDB().collection('riddles').deleteOne({_id: new mongodb.ObjectId(id)});
+    let sql = `DELETE FROM riddles WHERE _id = ${id}`;
+    mysqlDB.getDB().query(sql, (err, results) => {if(err) throw err});
   }
 
-  static updateRiddle(id, title, content) {
-    return database.getDB().collection('riddles')
-      .updateOne({_id: new mongodb.ObjectId(id)}, {$set: {title: title, content: content}});
-  }
+  // static updateRiddle(id, title, content) {
+  //   return database.getDB().collection('riddles')
+  //     .updateOne({_id: new mongodb.ObjectId(id)}, {$set: {title: title, content: content}});
+  // }
 
   static async like(id) {
-    const collection = database.getDB().collection('riddles');
-    const whereClause = { _id: new mongodb.ObjectId(id) };
-    const riddle = await collection.findOne(whereClause);
-    return await collection.updateOne(whereClause, { $set: { like: ++riddle.like } });
+    let sql = `SELECT likes FROM riddles WHERE _id = ${id};`;
+    mysqlDB.getDB().query(sql, (err, results) => {
+      let currentLike = results[0].likes;
+      console.log(currentLike);
+      let sql = `UPDATE riddles SET likes = ${++currentLike} WHERE _id = ${id}`;
+      mysqlDB.getDB().query(sql, (err, results) => {
+        if(err) throw err;
+      });
+    });
   }
 }
 

@@ -3,12 +3,16 @@ const Comment = require("../models/comment");
 const util = require("../util/util");
 const url = require("url");
 
-exports.getHomePage = (req, res, next) => {
+exports.getHomePage =  (req, res, next) => {
   const filter = req.query.filter;
   Riddle.getAll().then(async riddles => {
+    try{
     // Filter the riddles here //
     let sortedRiddles = await util.filterRiddle(filter, riddles);
     res.render("home", { riddles: sortedRiddles, filter });
+    } catch (err){
+      console.log(err)
+    }
   });
 };
 
@@ -32,7 +36,9 @@ exports.detailRiddle = (req, res, next) => {
   const isEditing = req.query.edit;
 
   Riddle.getOne(riddleId).then(riddle => {
-    riddle.date = util.getFormattedDate(riddle.date);
+    //for Data>>>> not sure if delete
+    // riddle.date = util.getFormattedDate(riddle.date);
+
     const bgImgFile = riddle.image_url || util.getRandomBgImg();
     Comment.getAllComment().then(comments => {
       res.render("detail", {
@@ -112,6 +118,6 @@ exports.updateComment = async (req, res, next) => {
 };
 
 exports.deleteComment = async (req, res, next) => {
-  await Comment.deleteComment(req.body.commentId);
+  await Comment.deleteComment((req.body.commentId));
   res.redirect("/riddles/" + req.body.riddleId);
 };

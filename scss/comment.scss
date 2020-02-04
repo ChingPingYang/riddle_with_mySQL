@@ -85,11 +85,12 @@
       align-items: center;
       color: $primGreen;
       margin-top: 20px;
-
+      
       .agree,
       .disagree {
         display: flex;
         align-items: center;
+        cursor: pointer;
       }
 
       .agree {

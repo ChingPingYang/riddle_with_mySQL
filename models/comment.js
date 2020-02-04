@@ -1,5 +1,4 @@
-const database = require("../util/database");
-const mongodb = require("mongodb");
+const mysqlDB = require('../util/mysqlDB');
 
 class Comment {
   constructor(riddleId, author, comment, vote) {
@@ -10,69 +9,49 @@ class Comment {
   }
 
   saveComment() {
-    database
-      .getDB()
-      .collection("comments")
-      .insertOne(this)
-      .then(result => {
-        console.log(result);
-        console.log("success!");
-      })
-      .catch(err => {
-        console.log(err);
-      });
+    let sql = `INSERT INTO comments SET ?`;
+    mysqlDB.getDB().query(sql, this, (err, results)=> {
+      if(err) throw err;
+    });
   }
 
   static getAllComment() {
-    return database
-      .getDB()
-      .collection("comments")
-      .find()
-      .toArray()
-      .then(result => {
-        return result;
+    let sql = 'SELECT * FROM comments';
+    return new Promise((resolve, reject) => {
+      mysqlDB.getDB().query(sql, (err, results) => {
+        resolve(results);
       })
-      .catch(err => {
-        console.log(err);
-      });
+    })
   }
 
   static getOneComment(commentId) {
-    return database.getDB().collection('comments').findOne({ _id: new mongodb.ObjectId(commentId) });
+    let sql = `SELECT * FROM comments WHERE _id = ${commentId}`;
+    mysqlDB.getDB().query(sql, (err, results) => { if(err) throw err});
   }
 
-  static async deleteComment(id) {
-    return database
-      .getDB()
-      .collection("comments")
-      .deleteOne({ _id: new mongodb.ObjectId(id) });
+  static deleteComment(id) {
+    let sql = `DELETE FROM comments WHERE _id = ${id}`;
+    mysqlDB.getDB().query(sql, (err, results) => {if(err) throw err});
+
   }
 
   static async deleteAllComment(riddleId) {
-    return database
-      .getDB()
-      .collection("comments")
-      .deleteMany( { riddle_id: riddleId } );
+    let sql = `DELETE FROM comments WHERE riddle_id = ${riddleId}`;
+    mysqlDB.getDB().query(sql, (err, results) => { if(err) throw err});
   }
 
   static updateComment(id, author, comment) {
-    return database
-      .getDB()
-      .collection("comments")
-      .updateOne(
-        { _id: new mongodb.ObjectId(id) },
-        { $set: { author: author, comment: comment } }
-      );
+    let sql = `UPDATE comments SET author = '${author}', comment = '${comment}' WHERE _id = ${id}`;
+    mysqlDB.getDB().query(sql, (err, results) => { if(err) throw err});
   }
 
   static async voteComment(id, value) {
-    let comment = await this.getOneComment(id)
-    let newValue = comment.vote + value
-    if(newValue <= 0) {
-      newValue = 0;
-    }
-    return database.getDB().collection('comments')
-           .updateOne({_id: new mongodb.ObjectId(id)}, {$set: {vote: newValue}});
+    let sql = `SELECT vote FROM comments WHERE _id = ${id};`
+    mysqlDB.getDB().query(sql,(err, results) => {
+        let currentVote = results[0].vote;
+        let sql = `UPDATE comments SET vote = ${currentVote + value} WHERE _id = ${id}`;
+        mysqlDB.getDB().query(sql, (err, results)=> { if(err) throw err});
+    });
   }
 }
 
