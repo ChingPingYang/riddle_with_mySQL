@@ -15,5 +15,7 @@ app.use(router);
 app.use(express.static('./public'));
 
 mysqlDB.connectToMySQL(()=>{
-    app.listen(3000);
+    app.listen(3000, () => {
+        console.log('Server is up and running')
+    });
 })
